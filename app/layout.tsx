@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Outfit } from "next/font/google";
+
+import { Providers } from "./components/Providers";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -29,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
