@@ -1,36 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PinMe Web
 
-## Getting Started
+Frontend for **PinMe** — timed drawing practice from personal reference boards, with progress tracking and (later) practice analytics.
 
-First, run the development server:
+Companion API: `pin-me-api`  
+Product docs hub (private/local): `pin-me`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Problem
+
+Artists keep reference images in messy folders, then redraw the same favorites. PinMe helps you:
+
+- organize references into boards,
+- run timed practice sessions,
+- mark images **Complete** or **Skip**,
+- practice only from the **available** pool until a board reset,
+- later: stats (GitHub-style heatmap) and user-owned Drive/Pinterest media.
+
+This repository is the **Next.js UI**. Domain logic and persistence live in `pin-me-api`.
+
+---
+
+## Current status
+
+| Item | State |
+|------|--------|
+| Stage | **002 — Web skeleton** |
+| Production-ready? | No — early scaffolding |
+| Implemented | Next.js 15 App Router, Tailwind, `NEXT_PUBLIC_API_URL`, home page live `/health` check |
+| Next | Boards UI, upload, practice session screen |
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 15 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Data fetching (later) | TanStack Query |
+| Practice UI state (later) | Zustand |
+| UI kit (later) | shadcn/ui |
+| Deploy target | Vercel |
+
+---
+
+## Architecture (sketch)
+
+```text
+Browser (this repo)
+        │ REST
+        ▼
+   PinMe API (pin-me-api)
+        ├── PostgreSQL
+        └── S3-compatible bootstrap storage
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Getting started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
 
-## Learn More
+- Node.js LTS (18+)
+- Running `pin-me-api` on `http://localhost:8000` (for the health check)
+- Git
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Enter the repo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd pin-me-web
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Environment file
 
-## Deploy on Vercel
+```bash
+cp .env.example .env.local
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Default:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### 3. Install and run
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The home page should show API health `ok` when the backend is up.
+
+---
+
+## Testing / smoke
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+Manual: with API running, open `/` and confirm the connectivity panel shows `status: ok` (or a clear error if the API is down).
+
+---
+
+## Project structure
+
+```text
+pin-me-web/
+├── app/
+│   ├── components/   # client UI (API health status)
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── .env.example
+├── next.config.ts
+└── package.json
+```
+
+---
+
+## Stages / changelog
+
+| Stage | Date | Summary |
+|-------|------|---------|
+| 002 | 2026-10-03 | Web skeleton: Next.js 15, Tailwind, env, live `/health` UI |
+
+---
+
+## Roadmap (Web)
+
+- Boards list / detail + bootstrap image upload
+- Practice session UI (timer, Complete / Skip, summary)
+- Auth screens + resume unfinished sessions
+- Stats dashboard with activity heatmap
+- Deploy to Vercel against Railway API
+
+---
+
+## Related repositories
+
+| Repo | Role |
+|------|------|
+| `pin-me-api` | FastAPI backend |
+| `pin-me` | Private/local product docs hub (not the public portfolio face) |
+
+---
+
+## License
+
+Personal / portfolio project — license TBD.
