@@ -25,10 +25,10 @@ This repository is the **Next.js UI**. Domain logic and persistence live in `pin
 
 | Item | State |
 |------|--------|
-| Stage | **002 — Web skeleton** |
+| Stage | **003 — Boards + upload** |
 | Production-ready? | No — early scaffolding |
-| Implemented | Next.js 15 App Router, Tailwind, `NEXT_PUBLIC_API_URL`, home page live `/health` check |
-| Next | Boards UI, upload, practice session screen |
+| Implemented | Next.js 15, Tailwind, TanStack Query, `/boards` list/create, board detail upload + grid, API health panel |
+| Next | Practice session UI (timer, Complete/Skip, summary) |
 
 ---
 
@@ -39,7 +39,7 @@ This repository is the **Next.js UI**. Domain logic and persistence live in `pin
 | Framework | Next.js 15 (App Router) |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| Data fetching (later) | TanStack Query |
+| Data fetching | TanStack Query |
 | Practice UI state (later) | Zustand |
 | UI kit (later) | shadcn/ui |
 | Deploy target | Vercel |
@@ -64,7 +64,7 @@ Browser (this repo)
 ### Prerequisites
 
 - Node.js LTS (18+)
-- Running `pin-me-api` on `http://localhost:8000` (for the health check)
+- Running `pin-me-api` on `http://localhost:8000` (health + boards/upload)
 - Git
 
 ### 1. Enter the repo
@@ -92,7 +92,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The home page should show API health `ok` when the backend is up.
+Open [http://localhost:3000](http://localhost:3000). Use **Open boards** to create boards and upload images (API must be running with migrations applied).
 
 ---
 
@@ -113,10 +113,12 @@ Manual: with API running, open `/` and confirm the connectivity panel shows `sta
 ```text
 pin-me-web/
 ├── app/
-│   ├── components/   # client UI (API health status)
+│   ├── boards/          # list + board detail / upload
+│   ├── components/
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
+├── lib/api.ts
 ├── .env.example
 ├── next.config.ts
 └── package.json
@@ -129,6 +131,7 @@ pin-me-web/
 | Stage | Date | Summary |
 |-------|------|---------|
 | 002 | 2026-10-03 | Web skeleton: Next.js 15, Tailwind, env, live `/health` UI |
+| 003 | 2026-10-03 | Boards list/detail + LOCAL_UPLOAD grid (TanStack Query) |
 
 ---
 
