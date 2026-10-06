@@ -28,14 +28,21 @@ export function apiBaseUrl(): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    ...init,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${apiBaseUrl()}${path}`, {
+      ...init,
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(
+      `Cannot reach API at ${apiBaseUrl()}. Is uvicorn running?`,
+    );
+  }
   if (!response.ok) {
     let detail = response.statusText;
     try {
-      const body = (await response.json()) as { detail?: string };
+      const body = (await response.json()) as { detail?: unknown };
       if (typeof body.detail === "string") detail = body.detail;
     } catch {
       // ignore non-JSON errors
@@ -65,6 +72,17 @@ export function createBoard(payload: {
 
 export function getBoard(boardId: string): Promise<Board> {
   return request<Board>(`/boards/${boardId}`);
+}
+
+export function updateBoard(
+  boardId: string,
+  payload: { name?: string; description?: string | null },
+): Promise<Board> {
+  return request<Board>(`/boards/${boardId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteBoard(boardId: string): Promise<void> {

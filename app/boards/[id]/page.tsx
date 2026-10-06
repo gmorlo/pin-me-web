@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
+import { BoardSettingsForm } from "../../components/BoardSettingsForm";
 import { SiteHeader } from "../../components/SiteHeader";
 import {
   deleteImage,
@@ -87,6 +88,14 @@ export default function BoardDetailPage() {
             <p className="mt-2 font-mono text-xs uppercase tracking-[0.14em] text-muted">
               {boardQuery.data?.image_count ?? 0} images · LOCAL_UPLOAD bootstrap
             </p>
+
+            {boardQuery.data ? (
+              <BoardSettingsForm
+                boardId={boardId}
+                name={boardQuery.data.name}
+                description={boardQuery.data.description}
+              />
+            ) : null}
 
             <label className="mt-10 inline-flex cursor-pointer items-center gap-3 border border-line bg-surface px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] transition-colors hover:border-accent">
               <span className="text-accent">Upload</span>
