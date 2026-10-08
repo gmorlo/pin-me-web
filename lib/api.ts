@@ -114,3 +114,104 @@ export function deleteImage(boardId: string, imageId: string): Promise<void> {
 export function imageContentUrl(contentPath: string): string {
   return `${apiBaseUrl()}${contentPath}`;
 }
+
+export type QueueImage = {
+  id: string;
+  image_id: string;
+  order_number: number;
+  status: string;
+  content_path: string;
+  original_filename: string | null;
+};
+
+export type PracticeSession = {
+  id: string;
+  board_id: string;
+  status: string;
+  duration_per_image_seconds: number;
+  image_count: number;
+  started_at: string;
+  finished_at: string | null;
+  total_practice_seconds: number;
+  current_order: number | null;
+  completed_count: number;
+  skipped_count: number;
+  pending_count: number;
+  current_image: QueueImage | null;
+  queue: QueueImage[];
+};
+
+export type ResetProgressResult = {
+  board_id: string;
+  reset_count: number;
+};
+
+export function createPracticeSession(payload: {
+  board_id: string;
+  duration_per_image_seconds: number;
+  image_count: number;
+}): Promise<PracticeSession> {
+  return request<PracticeSession>("/practice/sessions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getPracticeSession(sessionId: string): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}`);
+}
+
+export function pausePracticeSession(
+  sessionId: string,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}/pause`, {
+    method: "POST",
+  });
+}
+
+export function resumePracticeSession(
+  sessionId: string,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}/resume`, {
+    method: "POST",
+  });
+}
+
+export function completePracticeImage(
+  sessionId: string,
+  elapsed_seconds: number,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ elapsed_seconds }),
+  });
+}
+
+export function skipPracticeImage(
+  sessionId: string,
+  elapsed_seconds: number,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}/skip`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ elapsed_seconds }),
+  });
+}
+
+export function finishPracticeSession(
+  sessionId: string,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/practice/sessions/${sessionId}/finish`, {
+    method: "POST",
+  });
+}
+
+export function resetBoardProgress(
+  boardId: string,
+): Promise<ResetProgressResult> {
+  return request<ResetProgressResult>(`/boards/${boardId}/reset-progress`, {
+    method: "POST",
+  });
+}

@@ -7,11 +7,13 @@ import { useState } from "react";
 
 import { BoardSettingsForm } from "../../components/BoardSettingsForm";
 import { SiteHeader } from "../../components/SiteHeader";
+import { StartPracticeForm } from "../../components/StartPracticeForm";
 import {
   deleteImage,
   getBoard,
   imageContentUrl,
   listImages,
+  resetBoardProgress,
   uploadImage,
 } from "../../../lib/api";
 
@@ -51,6 +53,18 @@ export default function BoardDetailPage() {
         queryClient.invalidateQueries({ queryKey: ["images", boardId] }),
         queryClient.invalidateQueries({ queryKey: ["board", boardId] }),
         queryClient.invalidateQueries({ queryKey: ["boards"] }),
+      ]);
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  const resetMutation = useMutation({
+    mutationFn: () => resetBoardProgress(boardId),
+    onSuccess: async () => {
+      setError(null);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["images", boardId] }),
+        queryClient.invalidateQueries({ queryKey: ["board", boardId] }),
       ]);
     },
     onError: (err: Error) => setError(err.message),
@@ -96,6 +110,36 @@ export default function BoardDetailPage() {
                 description={boardQuery.data.description}
               />
             ) : null}
+
+            <StartPracticeForm
+              boardId={boardId}
+              maxImages={boardQuery.data?.image_count ?? 0}
+            />
+
+            <div className="mt-4">
+              <button
+                type="button"
+                disabled={resetMutation.isPending}
+                onClick={() => {
+                  if (
+                    confirm(
+                      "Reset all practice progress on this board to AVAILABLE? Completion history is kept.",
+                    )
+                  ) {
+                    resetMutation.mutate();
+                  }
+                }}
+                className="border border-line px-4 py-2 font-mono text-[11px] uppercase tracking-[0.14em] text-muted transition-colors hover:border-warn hover:text-foreground disabled:opacity-40"
+              >
+                {resetMutation.isPending ? "Resetting…" : "Reset progress"}
+              </button>
+              {resetMutation.isSuccess ? (
+                <p className="mt-2 font-mono text-xs text-ok">
+                  Reset {resetMutation.data.reset_count} progress row
+                  {resetMutation.data.reset_count === 1 ? "" : "s"}.
+                </p>
+              ) : null}
+            </div>
 
             <label className="mt-10 inline-flex cursor-pointer items-center gap-3 border border-line bg-surface px-4 py-3 font-mono text-xs uppercase tracking-[0.14em] transition-colors hover:border-accent">
               <span className="text-accent">Upload</span>

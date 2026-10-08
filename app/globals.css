@@ -65,3 +65,14 @@ body {
 .animate-pulse-soft {
   animation: pulse-soft 1.8s ease-in-out infinite;
 }
+
+.practice-ref {
+  transition:
+    filter 320ms ease,
+    transform 320ms ease;
+}
+
+.practice-ref--paused {
+  filter: blur(6px) brightness(0.55);
+  transform: scale(1.02);
+}
