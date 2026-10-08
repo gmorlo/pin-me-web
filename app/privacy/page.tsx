@@ -35,12 +35,12 @@ export default function PrivacyPage() {
             </h2>
             <p className="mt-2">
               PinMe is a personal portfolio project by Gabriel Francke
-              (francke.tech). Contact:{" "}
+              (francke.tech). For privacy questions, contact{" "}
               <a
                 className="text-foreground underline decoration-line underline-offset-4 hover:text-accent"
-                href="mailto:g.francke.tech@gmail.com"
+                href="mailto:contact@francke.tech"
               >
-                g.francke.tech@gmail.com
+                contact@francke.tech
               </a>
               .
             </p>
@@ -103,10 +103,15 @@ export default function PrivacyPage() {
               Retention &amp; your choices
             </h2>
             <p className="mt-2">
-              You can request access, correction, or deletion of your data by
-              emailing the contact above. You can disconnect a Pinterest
-              authorization at any time via Pinterest and/or the app when that
-              feature is available.
+              You can request access, correction, or deletion of your data at{" "}
+              <a
+                className="text-foreground underline decoration-line underline-offset-4 hover:text-accent"
+                href="mailto:contact@francke.tech"
+              >
+                contact@francke.tech
+              </a>
+              . You can disconnect a Pinterest authorization at any time via
+              Pinterest and/or the app when that feature is available.
             </p>
           </section>
 
