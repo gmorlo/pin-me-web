@@ -10,6 +10,12 @@ export function SiteHeader() {
         <Link href="/boards" className="transition-colors hover:text-foreground">
           Boards
         </Link>
+        <Link
+          href="/privacy"
+          className="transition-colors hover:text-foreground"
+        >
+          Privacy
+        </Link>
       </nav>
     </header>
   );
