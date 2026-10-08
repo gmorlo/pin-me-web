@@ -193,13 +193,12 @@ pin-me-web/
 | 002 | 2026-10-03 | Web skeleton: Next.js 15, Tailwind, env, live `/health` UI |
 | 003 | 2026-10-03 | Boards list/detail + LOCAL_UPLOAD grid (TanStack Query) |
 | 003a | 2026-10-07 | Board settings form (edit name/description; modular for future source links) |
+| 004 | 2026-10-08 | Practice UI: start form, timer (Zustand), Complete/Skip, summary, reset |
 
 ---
 
 ## Roadmap (Web)
 
-- Boards list / detail + bootstrap image upload
-- Practice session UI (timer, Complete / Skip, summary)
 - Auth screens + resume unfinished sessions
 - Stats dashboard with activity heatmap
 - Deploy to Vercel against Railway API
