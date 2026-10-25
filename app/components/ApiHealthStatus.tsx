@@ -17,6 +17,7 @@ function apiBaseUrl(): string {
 export function ApiHealthStatus() {
   const base = apiBaseUrl();
   const [state, setState] = useState<HealthState>({ kind: "loading" });
+  const [expanded, setExpanded] = useState(false);
 
   const check = useCallback(async () => {
     setState({ kind: "loading" });
@@ -63,59 +64,96 @@ export function ApiHealthStatus() {
     void check();
   }, [check]);
 
+  const summary =
+    state.kind === "loading"
+      ? "Checking server…"
+      : state.kind === "ok"
+        ? "Server connected"
+        : "Server unreachable";
+
   const tone =
     state.kind === "ok" ? "ok" : state.kind === "error" ? "bad" : "warn";
 
   return (
-    <section className="animate-fade-up mt-10 w-full max-w-xl" aria-live="polite">
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">
-          API connectivity
-        </p>
-        <button
-          type="button"
-          onClick={() => void check()}
-          className="font-mono text-xs uppercase tracking-[0.14em] text-muted transition-colors hover:text-foreground"
-        >
-          Recheck
-        </button>
+    <section className="animate-fade-up mt-12 w-full max-w-xl" aria-live="polite">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-y border-line py-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span
+            className={[
+              "inline-block size-2.5 shrink-0 rounded-full",
+              tone === "ok"
+                ? "bg-ok"
+                : tone === "bad"
+                  ? "bg-bad"
+                  : "bg-warn",
+              state.kind === "ok" ? "animate-pulse-soft" : "",
+            ].join(" ")}
+            aria-hidden
+          />
+          <p className="text-sm text-foreground">
+            {summary}
+            <span className="sr-only">
+              {tone === "ok"
+                ? " Status good."
+                : tone === "bad"
+                  ? " Status error."
+                  : " Status pending."}
+            </span>
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => void check()}
+            className="inline-flex min-h-11 items-center px-2 font-mono text-xs uppercase tracking-[0.14em] text-muted transition-colors hover:text-foreground"
+          >
+            Recheck
+          </button>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="inline-flex min-h-11 items-center px-2 font-mono text-xs uppercase tracking-[0.14em] text-muted transition-colors hover:text-foreground"
+          >
+            {expanded ? "Hide details" : "Details"}
+          </button>
+        </div>
       </div>
 
-      <dl className="divide-y divide-line border-y border-line">
-        <StatusRow label="Base URL" value={base} mono />
-        <StatusRow
-          label="State"
-          value={
-            state.kind === "loading"
-              ? "checking…"
-              : state.kind === "ok"
-                ? state.status
-                : "unreachable"
-          }
-          tone={tone}
-          pulse={state.kind === "ok"}
-        />
-        <StatusRow
-          label="Latency"
-          value={
-            state.kind === "loading"
-              ? "—"
-              : `${state.latencyMs ?? "—"} ms`
-          }
-          mono
-        />
-        <StatusRow
-          label="Payload"
-          value={
-            state.kind === "ok"
-              ? state.raw
-              : state.kind === "error"
-                ? state.message
-                : "awaiting response"
-          }
-          mono
-        />
-      </dl>
+      {expanded ? (
+        <dl className="divide-y divide-line border-b border-line">
+          <StatusRow label="Base URL" value={base} mono />
+          <StatusRow
+            label="State"
+            value={
+              state.kind === "loading"
+                ? "checking…"
+                : state.kind === "ok"
+                  ? state.status
+                  : "unreachable"
+            }
+            tone={tone}
+          />
+          <StatusRow
+            label="Latency"
+            value={
+              state.kind === "loading" ? "—" : `${state.latencyMs ?? "—"} ms`
+            }
+            mono
+          />
+          <StatusRow
+            label="Payload"
+            value={
+              state.kind === "ok"
+                ? state.raw
+                : state.kind === "error"
+                  ? state.message
+                  : "awaiting response"
+            }
+            mono
+          />
+        </dl>
+      ) : null}
     </section>
   );
 }
@@ -125,13 +163,11 @@ function StatusRow({
   value,
   mono = false,
   tone,
-  pulse = false,
 }: {
   label: string;
   value: string;
   mono?: boolean;
   tone?: "ok" | "warn" | "bad";
-  pulse?: boolean;
 }) {
   const toneClass =
     tone === "ok"
@@ -147,24 +183,10 @@ function StatusRow({
       <dt className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
         {label}
       </dt>
-      <dd className="flex min-w-0 items-center gap-2.5">
-        {tone ? (
-          <span
-            className={[
-              "inline-block size-2 shrink-0 rounded-full",
-              tone === "ok"
-                ? "bg-ok"
-                : tone === "bad"
-                  ? "bg-bad"
-                  : "bg-warn",
-              pulse ? "animate-pulse-soft" : "",
-            ].join(" ")}
-            aria-hidden
-          />
-        ) : null}
+      <dd className="min-w-0">
         <span
           className={[
-            "truncate text-sm sm:text-[0.95rem]",
+            "block truncate text-sm",
             mono ? "font-mono" : "",
             toneClass,
           ].join(" ")}

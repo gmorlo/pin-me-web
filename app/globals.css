@@ -3,14 +3,17 @@
 :root {
   --background: #0b0b0c;
   --foreground: #f2f2f2;
-  --muted: #8b919a;
-  --line: #24262b;
-  --surface: #121316;
+  /* ≥4.5:1 on #0b0b0c for body meta text */
+  --muted: #a4aab4;
+  --line: #2a2d33;
+  --surface: #141518;
+  /* Accent reserved for primary actions + practice urgency */
   --accent: #e50914;
   --accent-soft: rgba(229, 9, 20, 0.18);
   --ok: #3fb950;
   --warn: #d29922;
   --bad: #f85149;
+  --focus: #f2f2f2;
 }
 
 @theme inline {
@@ -35,6 +38,11 @@ body {
   min-height: 100vh;
 }
 
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -46,20 +54,18 @@ body {
   }
 }
 
+.animate-fade-up {
+  animation: fade-up 420ms ease-out both;
+}
+
 @keyframes pulse-soft {
   0%,
   100% {
     opacity: 1;
-    box-shadow: 0 0 0 0 var(--accent-soft);
   }
   50% {
-    opacity: 0.85;
-    box-shadow: 0 0 0 8px transparent;
+    opacity: 0.55;
   }
-}
-
-.animate-fade-up {
-  animation: fade-up 420ms ease-out both;
 }
 
 .animate-pulse-soft {
@@ -67,12 +73,20 @@ body {
 }
 
 .practice-ref {
-  transition:
-    filter 320ms ease,
-    transform 320ms ease;
+  transition: opacity 280ms ease;
 }
 
 .practice-ref--paused {
-  filter: blur(6px) brightness(0.55);
-  transform: scale(1.02);
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-pulse-soft {
+    animation: none;
+  }
+
+  .practice-ref {
+    transition: none;
+  }
 }

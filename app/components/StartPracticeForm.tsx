@@ -16,11 +16,13 @@ const DURATION_PRESETS = [
 type StartPracticeFormProps = {
   boardId: string;
   maxImages: number;
+  className?: string;
 };
 
 export function StartPracticeForm({
   boardId,
   maxImages,
+  className = "",
 }: StartPracticeFormProps) {
   const router = useRouter();
   const [duration, setDuration] = useState(120);
@@ -61,27 +63,25 @@ export function StartPracticeForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="mt-10 border border-line bg-surface/60 px-5 py-5 animate-fade-up"
+      className={`border border-line bg-surface/50 px-5 py-5 ${className}`.trim()}
     >
-      <h2 className="text-lg font-semibold tracking-tight">Start practice</h2>
-      <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-muted">
-        Queue from AVAILABLE images · client timer
+      <p className="text-sm text-muted">
+        Builds a queue from images still available on this board.
       </p>
 
       <fieldset className="mt-5">
-        <legend className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
-          Duration per image
-        </legend>
+        <legend className="text-sm text-muted">Duration per image</legend>
         <div className="mt-2 flex flex-wrap gap-2">
           {DURATION_PRESETS.map((preset) => (
             <button
               key={preset.seconds}
               type="button"
               onClick={() => setDuration(preset.seconds)}
-              className={`border px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] transition-colors ${
+              aria-pressed={duration === preset.seconds}
+              className={`inline-flex min-h-11 min-w-11 items-center justify-center border px-3 text-sm transition-colors ${
                 duration === preset.seconds
                   ? "border-accent bg-accent-soft text-foreground"
-                  : "border-line text-muted hover:border-accent hover:text-foreground"
+                  : "border-line text-muted hover:border-foreground hover:text-foreground"
               }`}
             >
               {preset.label}
@@ -91,37 +91,39 @@ export function StartPracticeForm({
       </fieldset>
 
       <label className="mt-5 block">
-        <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted">
-          Image count
-        </span>
-        <input
-          type="number"
-          min={1}
-          max={Math.max(1, maxImages)}
-          value={imageCount}
-          onChange={(event) =>
-            setImageCount(
-              Math.min(
-                Math.max(1, Number(event.target.value) || 1),
-                Math.max(1, maxImages),
-              ),
-            )
-          }
-          className="mt-2 w-28 border border-line bg-background px-3 py-2 font-mono text-sm outline-none focus:border-accent"
-        />
-        <span className="ml-3 font-mono text-xs text-muted">
-          max {Math.max(0, maxImages)} on board
-        </span>
+        <span className="text-sm text-muted">Image count</span>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <input
+            type="number"
+            min={1}
+            max={Math.max(1, maxImages)}
+            value={imageCount}
+            onChange={(event) =>
+              setImageCount(
+                Math.min(
+                  Math.max(1, Number(event.target.value) || 1),
+                  Math.max(1, maxImages),
+                ),
+              )
+            }
+            className="min-h-11 w-28 border border-line bg-background px-3 text-sm outline-none transition-shadow focus:ring-1 focus:ring-foreground"
+          />
+          <span className="text-sm text-muted">
+            of {Math.max(0, maxImages)} available
+          </span>
+        </div>
       </label>
 
       {error ? (
-        <p className="mt-4 font-mono text-sm text-bad">{error}</p>
+        <p className="mt-4 text-sm text-bad" role="alert">
+          {error}
+        </p>
       ) : null}
 
       <button
         type="submit"
         disabled={startMutation.isPending || maxImages < 1}
-        className="mt-6 bg-accent px-5 py-3 font-mono text-xs uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+        className="mt-6 inline-flex min-h-11 items-center bg-accent px-5 font-mono text-xs uppercase tracking-[0.16em] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {startMutation.isPending ? "Starting…" : "Start session"}
       </button>

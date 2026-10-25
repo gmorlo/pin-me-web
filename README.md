@@ -25,10 +25,10 @@ This repository is the **Next.js UI**. Domain logic and persistence live in `pin
 
 | Item | State |
 |------|--------|
-| Stage | **003 — Boards + upload** |
+| Stage | **006 — Split from portfolio hub** |
 | Production-ready? | No — early scaffolding |
-| Implemented | Next.js 15, Tailwind, TanStack Query, `/boards` list/create, board detail upload + grid, board settings edit, API health panel |
-| Next | Practice session UI (timer, Complete/Skip, summary) |
+| Implemented | Next.js 15, Tailwind, TanStack Query, boards + practice UI at `/`, API health panel |
+| Next | Local Compose smoke; auth; cloud harden |
 
 ---
 
@@ -105,7 +105,10 @@ Default contents:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:3000
 ```
+
+**Ports:** run **portfolio-web** on `:3000` and this app on `:3001` so the hub’s `NEXT_PUBLIC_PINME_URL` matches.
 
 #### 3) Install dependencies (once, or after package.json changes)
 
@@ -119,12 +122,15 @@ npm install
 npm run dev
 ```
 
+(`package.json` binds the app to port **3001** so portfolio can use **3000**.)
+
 #### 5) Open in the browser
 
 | Page | URL |
 |------|-----|
-| Home + API health | [http://localhost:3000](http://localhost:3000) |
-| Boards | [http://localhost:3000/boards](http://localhost:3000/boards) |
+| PinMe home + API health | [http://localhost:3001](http://localhost:3001) |
+| Boards | [http://localhost:3001/boards](http://localhost:3001/boards) |
+| Portfolio hub | [http://localhost:3000](http://localhost:3000) (`portfolio-web`) |
 
 On the home page, the health panel should show `ok`. Then **Open boards** → create a board → upload JPEG/PNG/WebP (max 5 MB).
 
@@ -144,7 +150,9 @@ docker compose up -d
 npm run dev
 ```
 
-4. Browser → [http://localhost:3000](http://localhost:3000)
+4. (Optional) Terminal C — in `portfolio-web`: `npm run dev` → [http://localhost:3000](http://localhost:3000)
+
+5. Browser → [http://localhost:3001](http://localhost:3001)
 
 ### Quick troubleshooting
 
@@ -153,7 +161,7 @@ npm run dev
 | Health panel “unreachable” / cannot reach API | Start uvicorn in `pin-me-api`; check `NEXT_PUBLIC_API_URL` |
 | Boards work, upload fails | Ensure `docker compose` S3 service is up (`pinme-s3`); see API README |
 | Docker pipe / engine errors | Start/restart Docker Desktop before `docker compose up -d` |
-| Port 3000 busy | `npm run dev -- --port 3001` (then open that port) |
+| Port 3001 busy | `npm run dev -- --port 3002` and update portfolio `NEXT_PUBLIC_PINME_URL` |
 ---
 
 ## Testing / smoke
@@ -194,14 +202,26 @@ pin-me-web/
 | 003 | 2026-10-03 | Boards list/detail + LOCAL_UPLOAD grid (TanStack Query) |
 | 003a | 2026-10-07 | Board settings form (edit name/description; modular for future source links) |
 | 004 | 2026-10-08 | Practice UI: start form, timer (Zustand), Complete/Skip, summary, reset |
+| 005 | 2026-10-25 | (superseded) Portfolio hub nested in this repo under `/pinme` |
+| 006 | 2026-10-25 | Split: PinMe restored to `/`; hub lives in `portfolio-web` |
+| 007 | 2026-10-25 | Login (Google + local allowlist), session cookie, protected boards/practice |
+
+---
+
+## Deploy notes
+
+- Vercel project for this repo stays on `*.vercel.app` (or later `pinme.francke.tech`).
+- Public hub domain **francke.tech** is owned by **`portfolio-web`**, not this repo.
+- Set `NEXT_PUBLIC_PORTFOLIO_URL=https://francke.tech` in production.
 
 ---
 
 ## Roadmap (Web)
 
-- Auth screens + resume unfinished sessions
+- Local Compose practice smoke (when Docker available)
+- Resume unfinished sessions
 - Stats dashboard with activity heatmap
-- Deploy to Vercel against Railway API
+- Cloud API harden (Railway migrations + R2); Drive/Pinterest import later (V3)
 
 ---
 
@@ -209,8 +229,9 @@ pin-me-web/
 
 | Repo | Role |
 |------|------|
+| `portfolio-web` | Public francke.tech hub |
 | `pin-me-api` | FastAPI backend |
-| `pin-me` | Private/local product docs hub (not the public portfolio face) |
+| `pin-me` | Private/local product docs hub |
 
 ---
 

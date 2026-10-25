@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { RequireAuth } from "../../components/RequireAuth";
 import {
   completePracticeImage,
   finishPracticeSession,
@@ -18,6 +19,14 @@ import {
 import { formatTimer, usePracticeStore } from "../../../lib/practiceStore";
 
 export default function PracticeSessionPage() {
+  return (
+    <RequireAuth>
+      <PracticeSessionInner />
+    </RequireAuth>
+  );
+}
+
+function PracticeSessionInner() {
   const params = useParams<{ sessionId: string }>();
   const sessionId = params.sessionId;
   const router = useRouter();
@@ -126,7 +135,7 @@ export default function PracticeSessionPage() {
   if (sessionQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="font-mono text-sm text-muted">Loading session…</p>
+        <p className="text-sm text-muted">Loading session…</p>
       </div>
     );
   }
@@ -134,12 +143,12 @@ export default function PracticeSessionPage() {
   if (sessionQuery.isError || !session) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6">
-        <p className="font-mono text-sm text-bad">
+        <p className="text-sm text-bad" role="alert">
           {(sessionQuery.error as Error)?.message ?? "Session not found"}
         </p>
         <Link
           href="/boards"
-          className="font-mono text-xs uppercase tracking-[0.16em] text-muted hover:text-foreground"
+          className="inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-foreground"
         >
           ← Boards
         </Link>
@@ -148,107 +157,99 @@ export default function PracticeSessionPage() {
   }
 
   const current = session.current_image;
-  const orderLabel = current
-    ? `${current.order_number} / ${session.image_count}`
-    : `${session.image_count} / ${session.image_count}`;
+  const progressLabel = current
+    ? `${current.order_number} of ${session.image_count}`
+    : `${session.image_count} of ${session.image_count}`;
   const isPaused = session.status === "PAUSED";
+  const urgent = remainingSeconds <= 10 && !isPaused;
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background lg:flex-row">
-      {/* Image stage — never covered by the control panel */}
-      <section className="relative min-h-0 min-w-0 flex-1">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(229,9,20,0.1)_0%,_transparent_55%)]"
-        />
-
+      {/* Image stage — content owns the viewport */}
+      <section className="relative min-h-0 min-w-0 flex-1 bg-background">
         {current ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={current.id}
             src={imageContentUrl(current.content_path)}
             alt={current.original_filename ?? "Practice reference"}
-            className={`practice-ref absolute inset-0 h-full w-full object-contain p-3 animate-fade-up sm:p-5 ${
+            className={`practice-ref absolute inset-0 h-full w-full object-contain p-4 sm:p-6 ${
               isPaused ? "practice-ref--paused" : ""
             }`}
           />
         ) : null}
 
         {isPaused ? (
-          <div
-            aria-hidden
-            className="absolute inset-0 z-[5] bg-background/30 backdrop-blur-[2px] transition-opacity duration-300"
-          />
+          <div className="absolute inset-0 z-[5] flex items-center justify-center bg-background/50">
+            <p className="rounded-sm bg-background/80 px-4 py-2 text-sm tracking-wide text-foreground">
+              Paused
+            </p>
+          </div>
         ) : null}
       </section>
 
       {/* Controls: bottom on phone, right column on wide screens */}
-      <aside className="z-10 shrink-0 border-t border-line bg-surface/95 backdrop-blur-md lg:flex lg:h-full lg:w-80 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 xl:w-96">
-        <div className="mx-auto w-full max-w-lg px-4 py-4 sm:px-6 sm:py-5 lg:max-w-none lg:px-7 lg:py-8">
-          <div className="flex items-end justify-between gap-3 lg:flex-col lg:items-stretch lg:gap-1">
+      <aside className="z-10 shrink-0 border-t border-line bg-surface lg:flex lg:h-full lg:w-80 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 xl:w-96">
+        <div className="mx-auto w-full max-w-lg px-4 py-4 sm:px-6 sm:py-5 lg:max-w-none lg:px-8 lg:py-10">
+          <div className="flex items-end justify-between gap-4 lg:flex-col lg:items-stretch">
             <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-                Practice · {orderLabel}
-              </p>
+              <p className="text-sm text-muted">{progressLabel}</p>
               <p
-                className={`mt-1 font-mono text-4xl tracking-tight sm:text-5xl lg:mt-2 ${
-                  remainingSeconds <= 10 && !isPaused
-                    ? "text-accent animate-pulse-soft"
-                    : ""
+                className={`mt-1 text-5xl font-semibold tracking-tight tabular-nums sm:text-6xl lg:mt-2 ${
+                  urgent ? "text-accent" : "text-foreground"
                 }`}
+                aria-live="polite"
+                aria-atomic="true"
               >
                 {formatTimer(remainingSeconds)}
               </p>
             </div>
-            <p className="pb-1 text-right font-mono text-[11px] uppercase tracking-[0.16em] lg:pb-0 lg:pt-3 lg:text-left">
-              <span className="text-ok">{session.completed_count} completed</span>
+            <p className="pb-1 text-right text-sm text-muted lg:pb-0 lg:pt-4 lg:text-left">
+              <span className="text-ok">{session.completed_count} done</span>
               <span className="mx-2 text-line">·</span>
-              <span className="text-warn">{session.skipped_count} skipped</span>
+              <span>{session.skipped_count} skipped</span>
             </p>
           </div>
 
-          {isPaused ? (
-            <p className="mt-3 font-mono text-xs uppercase tracking-[0.2em] text-accent lg:mt-5">
-              Paused
-            </p>
-          ) : null}
-
-          <div className="mt-4 grid grid-cols-3 gap-2 lg:mt-6 lg:grid-cols-1">
-            {isPaused ? (
-              <button
-                type="button"
-                disabled={resumeMutation.isPending || busy}
-                onClick={() => resumeMutation.mutate()}
-                className="border border-accent bg-accent-soft px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                Resume
-              </button>
-            ) : (
-              <button
-                type="button"
-                disabled={pauseMutation.isPending || busy}
-                onClick={() => pauseMutation.mutate()}
-                className="border border-line bg-background/80 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] transition-colors hover:border-accent disabled:opacity-40"
-              >
-                Pause
-              </button>
-            )}
-            <button
-              type="button"
-              disabled={busy || !current || isPaused}
-              onClick={() => void finishCurrent("skip")}
-              className="border border-line bg-background/80 px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-muted transition-colors hover:border-warn hover:text-foreground disabled:opacity-40"
-            >
-              Skip
-            </button>
+          <div className="mt-5 flex flex-col gap-2 lg:mt-8">
             <button
               type="button"
               disabled={busy || !current || isPaused}
               onClick={() => void finishCurrent("complete")}
-              className="bg-accent px-3 py-3 font-mono text-xs uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="inline-flex min-h-12 w-full items-center justify-center bg-accent px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               Complete
             </button>
+
+            <div className="grid grid-cols-2 gap-2">
+              {isPaused ? (
+                <button
+                  type="button"
+                  disabled={resumeMutation.isPending || busy}
+                  onClick={() => resumeMutation.mutate()}
+                  className="inline-flex min-h-11 items-center justify-center border border-foreground px-3 text-sm text-foreground transition-colors hover:bg-foreground hover:text-background disabled:opacity-40"
+                >
+                  Resume
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={pauseMutation.isPending || busy}
+                  onClick={() => pauseMutation.mutate()}
+                  className="inline-flex min-h-11 items-center justify-center border border-line px-3 text-sm text-muted transition-colors hover:border-foreground hover:text-foreground disabled:opacity-40"
+                >
+                  Pause
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={busy || !current || isPaused}
+                onClick={() => void finishCurrent("skip")}
+                className="inline-flex min-h-11 items-center justify-center border border-line px-3 text-sm text-muted transition-colors hover:border-foreground hover:text-foreground disabled:opacity-40"
+              >
+                Skip
+              </button>
+            </div>
           </div>
 
           <button
@@ -263,18 +264,20 @@ export default function PracticeSessionPage() {
                 endMutation.mutate();
               }
             }}
-            className="mt-3 w-full border border-line px-3 py-2.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted transition-colors hover:border-foreground hover:text-foreground disabled:opacity-40 lg:mt-4"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center text-sm text-muted transition-colors hover:text-foreground disabled:opacity-40"
           >
             {endMutation.isPending ? "Ending…" : "End session"}
           </button>
 
           {error ? (
-            <p className="mt-3 font-mono text-sm text-bad">{error}</p>
+            <p className="mt-3 text-sm text-bad" role="alert">
+              {error}
+            </p>
           ) : (
-            <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.16em] text-muted/70">
+            <p className="mt-3 text-xs leading-relaxed text-muted">
               {isPaused
-                ? "Resume to continue the timer"
-                : "Complete advances · Skip leaves AVAILABLE"}
+                ? "Resume to continue the timer."
+                : "Complete moves on. Skip keeps the image available later."}
             </p>
           )}
         </div>

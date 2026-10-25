@@ -16,9 +16,12 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PinMe",
+  title: {
+    default: "PinMe",
+    template: "%s · PinMe",
+  },
   description:
-    "Drawing-practice UI for timed, non-repeating sessions from personal reference boards.",
+    "Timed drawing practice from personal reference boards — Complete, Skip, reset.",
 };
 
 export default function RootLayout({

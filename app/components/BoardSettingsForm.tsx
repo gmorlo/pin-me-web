@@ -9,7 +9,11 @@ type BoardSettingsFormProps = {
   boardId: string;
   name: string;
   description: string | null;
+  className?: string;
 };
+
+const fieldClassName =
+  "min-h-11 bg-surface px-3 text-sm text-foreground outline-none ring-1 ring-line transition-shadow focus:ring-foreground";
 
 /**
  * Board metadata settings. Keep source-link UI (Pinterest / Drive) as sibling
@@ -19,6 +23,7 @@ export function BoardSettingsForm({
   boardId,
   name,
   description,
+  className = "",
 }: BoardSettingsFormProps) {
   const queryClient = useQueryClient();
   const [draftName, setDraftName] = useState(name);
@@ -62,49 +67,37 @@ export function BoardSettingsForm({
   }
 
   return (
-    <section className="mt-10 border-y border-line py-6">
-      <div className="mb-4 flex items-baseline justify-between gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">
-            Board settings
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            Name and description. Source links (Pinterest / Drive) will land in
-            this settings area later.
-          </p>
-        </div>
-      </div>
+    <section className={className}>
+      <p className="text-sm text-muted">
+        Name and description for this board.
+      </p>
 
       <form
         onSubmit={onSubmit}
-        className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+        className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
       >
         <label className="grid gap-2">
-          <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
-            Name
-          </span>
+          <span className="text-sm text-muted">Name</span>
           <input
             value={draftName}
             onChange={(e) => {
               setDraftName(e.target.value);
               setMessage(null);
             }}
-            className="bg-surface px-3 py-2 text-sm text-foreground outline-none ring-1 ring-line focus:ring-accent"
+            className={fieldClassName}
             required
             maxLength={200}
           />
         </label>
         <label className="grid gap-2">
-          <span className="font-mono text-xs uppercase tracking-[0.14em] text-muted">
-            Description
-          </span>
+          <span className="text-sm text-muted">Description</span>
           <input
             value={draftDescription}
             onChange={(e) => {
               setDraftDescription(e.target.value);
               setMessage(null);
             }}
-            className="bg-surface px-3 py-2 text-sm text-foreground outline-none ring-1 ring-line focus:ring-accent"
+            className={fieldClassName}
             placeholder="Optional"
             maxLength={2000}
           />
@@ -112,18 +105,18 @@ export function BoardSettingsForm({
         <button
           type="submit"
           disabled={!dirty || !draftName.trim() || saveMutation.isPending}
-          className="bg-accent px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="inline-flex min-h-11 items-center justify-center border border-line px-4 text-sm text-foreground transition-colors hover:border-foreground disabled:opacity-40"
         >
-          {saveMutation.isPending ? "Saving…" : "Save"}
+          {saveMutation.isPending ? "Saving…" : "Save changes"}
         </button>
       </form>
 
       {error ? (
-        <p className="mt-3 font-mono text-sm text-bad">{error}</p>
+        <p className="mt-3 text-sm text-bad" role="alert">
+          {error}
+        </p>
       ) : null}
-      {message ? (
-        <p className="mt-3 font-mono text-sm text-ok">{message}</p>
-      ) : null}
+      {message ? <p className="mt-3 text-sm text-ok">{message}</p> : null}
     </section>
   );
 }

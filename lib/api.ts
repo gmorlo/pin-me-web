@@ -1,9 +1,15 @@
+export type BoardPreviewImage = {
+  id: string;
+  content_path: string;
+};
+
 export type Board = {
   id: string;
   name: string;
   description: string | null;
   created_at: string;
   image_count: number;
+  preview_images: BoardPreviewImage[];
 };
 
 export type ReferenceImage = {
@@ -20,11 +26,30 @@ export type ReferenceImage = {
   content_path: string;
 };
 
+export type ImagePage = {
+  items: ReferenceImage[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export const IMAGE_PAGE_SIZE = 24;
+
 export function apiBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(
     /\/$/,
     "",
   );
+}
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -33,6 +58,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     response = await fetch(`${apiBaseUrl()}${path}`, {
       ...init,
       cache: "no-store",
+      credentials: "include",
     });
   } catch {
     throw new Error(
@@ -47,12 +73,51 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // ignore non-JSON errors
     }
-    throw new Error(detail || `Request failed (${response.status})`);
+    throw new ApiError(
+      response.status,
+      detail || `Request failed (${response.status})`,
+    );
   }
   if (response.status === 204) {
     return undefined as T;
   }
   return (await response.json()) as T;
+}
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  username: string;
+  created_at: string;
+};
+
+export type AuthStatus = {
+  google_configured: boolean;
+  dev_bypass: boolean;
+};
+
+export function getAuthStatus(): Promise<AuthStatus> {
+  return request<AuthStatus>("/auth/status");
+}
+
+export function getMe(): Promise<AuthUser> {
+  return request<AuthUser>("/auth/me");
+}
+
+export function logout(): Promise<void> {
+  return request<void>("/auth/logout", { method: "POST" });
+}
+
+export function devLogin(email: string): Promise<AuthUser> {
+  return request<AuthUser>("/auth/dev-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function googleLoginUrl(): string {
+  return `${apiBaseUrl()}/auth/google/start`;
 }
 
 export function listBoards(): Promise<Board[]> {
@@ -89,8 +154,17 @@ export function deleteBoard(boardId: string): Promise<void> {
   return request<void>(`/boards/${boardId}`, { method: "DELETE" });
 }
 
-export function listImages(boardId: string): Promise<ReferenceImage[]> {
-  return request<ReferenceImage[]>(`/boards/${boardId}/images`);
+export function listImages(
+  boardId: string,
+  opts?: { limit?: number; offset?: number },
+): Promise<ImagePage> {
+  const limit = opts?.limit ?? IMAGE_PAGE_SIZE;
+  const offset = opts?.offset ?? 0;
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return request<ImagePage>(`/boards/${boardId}/images?${params}`);
 }
 
 export async function uploadImage(
@@ -103,6 +177,35 @@ export async function uploadImage(
     method: "POST",
     body: form,
   });
+}
+
+export type UploadImagesResult = {
+  uploaded: ReferenceImage[];
+  failures: { name: string; message: string }[];
+};
+
+/** Upload many files one-by-one against the existing single-file API. */
+export async function uploadImages(
+  boardId: string,
+  files: File[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<UploadImagesResult> {
+  const uploaded: ReferenceImage[] = [];
+  const failures: { name: string; message: string }[] = [];
+  const total = files.length;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    try {
+      uploaded.push(await uploadImage(boardId, file));
+    } catch (err) {
+      failures.push({
+        name: file.name,
+        message: err instanceof Error ? err.message : "Upload failed",
+      });
+    }
+    onProgress?.(i + 1, total);
+  }
+  return { uploaded, failures };
 }
 
 export function deleteImage(boardId: string, imageId: string): Promise<void> {
