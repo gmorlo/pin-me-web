@@ -104,7 +104,7 @@ Copy-Item .env.example .env.local
 Default contents:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+API_ORIGIN=http://localhost:8000
 NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:3000
 ```
 
@@ -158,7 +158,7 @@ npm run dev
 
 | Symptom | Fix |
 |---------|-----|
-| Health panel “unreachable” / cannot reach API | Start uvicorn in `pin-me-api`; check `NEXT_PUBLIC_API_URL` |
+| Health panel “unreachable” / cannot reach API | Start uvicorn in `pin-me-api`; check `API_ORIGIN` |
 | Boards work, upload fails | Ensure `docker compose` S3 service is up (`pinme-s3`); see API README |
 | Docker pipe / engine errors | Start/restart Docker Desktop before `docker compose up -d` |
 | Port 3001 busy | `npm run dev -- --port 3002` and update portfolio `NEXT_PUBLIC_PINME_URL` |

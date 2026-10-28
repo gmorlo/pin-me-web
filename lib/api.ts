@@ -35,11 +35,9 @@ export type ImagePage = {
 
 export const IMAGE_PAGE_SIZE = 24;
 
+// Proxied to the API by next.config.ts rewrites.
 export function apiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(
-    /\/$/,
-    "",
-  );
+  return "/api";
 }
 
 export class ApiError extends Error {
@@ -61,9 +59,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       credentials: "include",
     });
   } catch {
-    throw new Error(
-      `Cannot reach API at ${apiBaseUrl()}. Is uvicorn running?`,
-    );
+    throw new Error("Cannot reach the server. Check your connection and try again.");
   }
   if (!response.ok) {
     let detail = response.statusText;

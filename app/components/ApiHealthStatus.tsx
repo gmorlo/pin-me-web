@@ -2,17 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { apiBaseUrl } from "../../lib/api";
+
 type HealthState =
   | { kind: "loading" }
   | { kind: "ok"; status: string; latencyMs: number; raw: string }
   | { kind: "error"; message: string; latencyMs?: number };
-
-function apiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(
-    /\/$/,
-    "",
-  );
-}
 
 export function ApiHealthStatus() {
   const base = apiBaseUrl();
