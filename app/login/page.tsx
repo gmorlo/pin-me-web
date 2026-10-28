@@ -21,7 +21,9 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const nextPath = searchParams.get("next") || "/boards";
+  const rawNext = searchParams.get("next");
+  // Reject "//host", "/\host" and whitespace (browsers strip tabs: "/\t/host" -> "//host").
+  const nextPath = rawNext && /^\/(?![/\\])[^\s\\]*$/.test(rawNext) ? rawNext : "/boards";
   const errorParam = searchParams.get("error");
   const [email, setEmail] = useState("demo@pinme.local");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ function LoginForm() {
 
   useEffect(() => {
     if (meQuery.isSuccess) {
-      router.replace(nextPath.startsWith("/") ? nextPath : "/boards");
+      router.replace(nextPath);
     }
   }, [meQuery.isSuccess, nextPath, router]);
 
@@ -48,7 +50,7 @@ function LoginForm() {
     onSuccess: async () => {
       setError(null);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      router.replace(nextPath.startsWith("/") ? nextPath : "/boards");
+      router.replace(nextPath);
     },
     onError: (err: Error) => {
       if (err instanceof ApiError && err.status === 403) {
