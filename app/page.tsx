@@ -2,11 +2,9 @@ import Link from "next/link";
 
 import { ApiHealthStatus } from "./components/ApiHealthStatus";
 import { PinMeHeader } from "./components/PinMeHeader";
+import { PORTFOLIO_URL } from "../lib/site";
 
 export default function PinMeHomePage() {
-  const portfolioUrl =
-    process.env.NEXT_PUBLIC_PORTFOLIO_URL ?? "http://localhost:3000";
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div
@@ -31,7 +29,7 @@ export default function PinMeHomePage() {
             Open boards
           </Link>
           <a
-            href={portfolioUrl}
+            href={PORTFOLIO_URL}
             className="inline-flex min-h-11 items-center px-2 font-mono text-xs uppercase tracking-[0.16em] text-muted transition-colors hover:text-foreground"
             rel="noreferrer"
           >

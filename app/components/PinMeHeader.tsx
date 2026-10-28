@@ -5,9 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { getMe, logout } from "../../lib/api";
-
-const PORTFOLIO_URL =
-  process.env.NEXT_PUBLIC_PORTFOLIO_URL ?? "http://localhost:3000";
+import { PORTFOLIO_URL } from "../../lib/site";
 
 /** Site header for the PinMe product surface. */
 export function PinMeHeader() {
