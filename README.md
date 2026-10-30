@@ -205,6 +205,7 @@ pin-me-web/
 | 005 | 2026-10-25 | (superseded) Portfolio hub nested in this repo under `/pinme` |
 | 006 | 2026-10-25 | Split: PinMe restored to `/`; hub lives in `portfolio-web` |
 | 007 | 2026-10-25 | Login (Google + local allowlist), session cookie, protected boards/practice |
+| 008 | 2026-10-28 | Prod on Vercel: same-origin `/api` proxy to Railway, login redirect guard |
 
 ---
 
