@@ -8,10 +8,13 @@ Frontend for **PinMe**, a drawing-practice app: artists keep reference boards an
 
 > **Live demo is currently offline.** The API host trial ended, so the app runs locally for now. The screenshots below show it running.
 
-<!-- TODO: add docs/images/boards.png, docs/images/practice.png and docs/images/summary.png, then uncomment:
-![Boards](docs/images/boards.png)
-![Practice session](docs/images/practice.png)
--->
+![PinMe practice session](docs/images/practice.gif)
+
+| Boards | Practice | Summary |
+|---|---|---|
+| ![Boards](docs/images/boards.png) | ![Practice screen](docs/images/practice.png) | ![Session summary](docs/images/summary.png) |
+
+<sub>Reference images in the screenshots are public-domain artworks from Wikimedia Commons.</sub>
 
 ## Problem
 
