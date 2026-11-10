@@ -1,170 +1,61 @@
 # PinMe Web
 
-Frontend for **PinMe** — timed drawing practice from personal reference boards, with progress tracking and (later) practice analytics.
+[![CI](https://github.com/gmorlo/pin-me-web/actions/workflows/ci.yml/badge.svg)](https://github.com/gmorlo/pin-me-web/actions/workflows/ci.yml)
 
-Companion API: `pin-me-api`  
-Product docs hub (private/local): `pin-me`
+Frontend for **PinMe**, a drawing-practice app: artists keep reference boards and run timed, non-repeating practice sessions from their own images.
 
----
+**Portfolio:** [francke.tech](https://francke.tech) · **Backend repo:** [pin-me-api](https://github.com/gmorlo/pin-me-api)
+
+> **Live demo is currently offline.** The API host trial ended, so the app runs locally for now. The screenshots below show it running.
+
+<!-- TODO: add docs/images/boards.png, docs/images/practice.png and docs/images/summary.png, then uncomment:
+![Boards](docs/images/boards.png)
+![Practice session](docs/images/practice.png)
+-->
 
 ## Problem
 
-Artists keep reference images in messy folders, then redraw the same favorites. PinMe helps you:
+Artists save references in messy folders and boards, then keep redrawing the same favourites. PinMe turns a board into a practice queue: each image is drawn once, and the board only refills when you decide to reset it.
 
-- organize references into boards,
-- run timed practice sessions,
-- mark images **Complete** or **Skip**,
-- practice only from the **available** pool until a board reset,
-- later: stats (GitHub-style heatmap) and user-owned Drive/Pinterest media.
+## What you can do
 
-This repository is the **Next.js UI**. Domain logic and persistence live in `pin-me-api`.
+- **Boards:** create and edit boards, upload references (JPEG/PNG/WebP), browse them in a grid with a random cover preview.
+- **Start a session:** choose time per image and how many images to draw.
+- **Practice screen:** large reference, countdown timer, progress (`3 / 10`), Pause, Skip and Complete. It stays minimal on purpose so the image gets the attention.
+- **Summary:** completed, skipped and total practice time, with an option to reset the board's progress.
+- **Sign in with Google** (allowlisted accounts). Boards and practice routes are protected.
 
----
+## How it works
 
-## Current status
+Production setup used until November 2026 (Vercel + Railway + Neon + R2). The API is not hosted at the moment.
 
-| Item | State |
-|------|--------|
-| Stage | **006 — Split from portfolio hub** |
-| Production-ready? | No — early scaffolding |
-| Implemented | Next.js 15, Tailwind, TanStack Query, boards + practice UI at `/`, API health panel |
-| Next | Local Compose smoke; auth; cloud harden |
+```mermaid
+flowchart LR
+    B[Browser] -->|"/api/* same origin"| W["pin-me-web<br/>Next.js on Vercel"]
+    W -->|rewrite proxy| A["pin-me-api<br/>FastAPI on Railway"]
+    A --> P[("PostgreSQL")]
+    A --> S[("Cloudflare R2")]
+```
 
----
+## Engineering decisions
+
+1. **Same-origin API proxy.** The browser only talks to `/api/*` on the web origin, and `next.config.ts` rewrites it to the API. `vercel.app` and `railway.app` are different sites, so this keeps the auth cookie first-party instead of being blocked as a third-party cookie. The build fails on Vercel if `API_ORIGIN` is missing, so a misconfigured deploy cannot ship.
+2. **Server state and timer state are separate.** TanStack Query owns everything that comes from the API (boards, images, session queue). After each Complete or Skip it stores the updated session the API returns, so the screen never shows a guessed state. A small Zustand store owns only the countdown, which is reset when the current image changes.
+3. **The backend decides what comes next.** The UI never picks images itself. It renders the session the API returns (current image, counts, queue), so the "no repeats" rule lives in one place.
+4. **Auth guard as a component.** `RequireAuth` wraps protected pages and redirects to `/login`, and the login page only accepts same-site paths in `?next=`, which blocks open redirects.
 
 ## Tech stack
 
 | Layer | Choice |
 |-------|--------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| Data fetching | TanStack Query |
-| Practice UI state (later) | Zustand |
-| UI kit (later) | shadcn/ui |
-| Deploy target | Vercel |
+| Framework | Next.js 15 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS 4 |
+| Data | TanStack Query |
+| Practice state | Zustand |
+| Quality | ESLint, `tsc --noEmit`, GitHub Actions |
+| Deploy | Vercel |
 
----
-
-## Architecture (sketch)
-
-```text
-Browser (this repo)
-        │ REST
-        ▼
-   PinMe API (pin-me-api)
-        ├── PostgreSQL
-        └── S3-compatible bootstrap storage
-```
-
----
-
-## Getting started
-
-### Prerequisites
-
-- Node.js LTS (18+)
-- Git
-- **Docker Desktop** + running `pin-me-api` (Postgres, S3 mock, uvicorn on port **8000**) — see that repo’s README first
-
-### Local run — command by command (Windows)
-
-You need **two stacks**: API (+ Docker) in one terminal, this web app in another.
-
-#### 0) Start Docker Desktop + API first
-
-1. Open **Docker Desktop** and wait until the engine is running.
-2. In a terminal, follow **pin-me-api** README steps in order:
-   - `docker compose up -d`
-   - venv + `pip install -r requirements-dev.txt` (once)
-   - `alembic upgrade head`
-   - `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
-3. Confirm API health: [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) → `{"status":"ok"}`
-
-Leave that uvicorn terminal running.
-
-#### 1) Open this project folder (second terminal)
-
-Run every command below from the `pin-me-web` root (the folder that contains `package.json`).
-
-#### 2) Env file (once)
-
-**cmd**
-
-```bat
-copy .env.example .env.local
-```
-
-**PowerShell**
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
-Default contents:
-
-```env
-API_ORIGIN=http://localhost:8000
-NEXT_PUBLIC_PORTFOLIO_URL=http://localhost:3000
-```
-
-**Ports:** run **portfolio-web** on `:3000` and this app on `:3001` so the hub’s `NEXT_PUBLIC_PINME_URL` matches.
-
-#### 3) Install dependencies (once, or after package.json changes)
-
-```bat
-npm install
-```
-
-#### 4) Start the web app (leave this running)
-
-```bat
-npm run dev
-```
-
-(`package.json` binds the app to port **3001** so portfolio can use **3000**.)
-
-#### 5) Open in the browser
-
-| Page | URL |
-|------|-----|
-| PinMe home + API health | [http://localhost:3001](http://localhost:3001) |
-| Boards | [http://localhost:3001/boards](http://localhost:3001/boards) |
-| Portfolio hub | [http://localhost:3000](http://localhost:3000) (`portfolio-web`) |
-
-On the home page, the health panel should show `ok`. Then **Open boards** → create a board → upload JPEG/PNG/WebP (max 5 MB).
-
-### Typical daily startup (after first-time setup)
-
-1. Start **Docker Desktop** (wait for engine).
-2. Terminal A — in `pin-me-api`:
-
-```bat
-docker compose up -d
-.\.venv\Scripts\uvicorn.exe app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-3. Terminal B — in `pin-me-web`:
-
-```bat
-npm run dev
-```
-
-4. (Optional) Terminal C — in `portfolio-web`: `npm run dev` → [http://localhost:3000](http://localhost:3000)
-
-5. Browser → [http://localhost:3001](http://localhost:3001)
-
-### Quick troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| Health panel “unreachable” / cannot reach API | Start uvicorn in `pin-me-api`; check `API_ORIGIN` |
-| Boards work, upload fails | Ensure `docker compose` S3 service is up (`pinme-s3`); see API README |
-| Docker pipe / engine errors | Start/restart Docker Desktop before `docker compose up -d` |
-| Port 3001 busy | `npm run dev -- --port 3002` and update portfolio `NEXT_PUBLIC_PINME_URL` |
----
-
-## Testing / smoke
+## Checks
 
 ```bash
 npm run lint
@@ -172,70 +63,48 @@ npx tsc --noEmit
 npm run build
 ```
 
-Manual: with API running, open `/` and confirm the connectivity panel shows `status: ok` (or a clear error if the API is down).
+CI runs all three on every push.
 
----
+## Run locally
+
+Start the API first (see [pin-me-api](https://github.com/gmorlo/pin-me-api)), then:
+
+```bash
+cp .env.example .env.local    # API_ORIGIN=http://localhost:8000
+npm install
+npm run dev                    # http://localhost:3001
+```
+
+Full Windows walkthrough with daily startup and troubleshooting: [docs/setup.md](docs/setup.md).
 
 ## Project structure
 
 ```text
-pin-me-web/
-├── app/
-│   ├── boards/          # list + board detail / upload
-│   ├── components/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── lib/api.ts
-├── .env.example
-├── next.config.ts
-└── package.json
+app/
+├── boards/            board list, board detail with upload and settings
+├── practice/          practice screen and session summary
+├── login/             Google sign-in
+├── privacy/           privacy policy
+└── components/        shared UI (header, auth guard, forms, thumbnails)
+lib/
+├── api.ts             typed API client
+├── practiceStore.ts   Zustand timer store
+└── site.ts            site URLs
 ```
 
----
+## Roadmap
 
-## Stages / changelog
-
-| Stage | Date | Summary |
-|-------|------|---------|
-| 002 | 2026-10-03 | Web skeleton: Next.js 15, Tailwind, env, live `/health` UI |
-| 003 | 2026-10-03 | Boards list/detail + LOCAL_UPLOAD grid (TanStack Query) |
-| 003a | 2026-10-07 | Board settings form (edit name/description; modular for future source links) |
-| 004 | 2026-10-08 | Practice UI: start form, timer (Zustand), Complete/Skip, summary, reset |
-| 005 | 2026-10-25 | (superseded) Portfolio hub nested in this repo under `/pinme` |
-| 006 | 2026-10-25 | Split: PinMe restored to `/`; hub lives in `portfolio-web` |
-| 007 | 2026-10-25 | Login (Google + local allowlist), session cookie, protected boards/practice |
-| 008 | 2026-10-28 | Prod on Vercel: same-origin `/api` proxy to Railway, login redirect guard |
-
----
-
-## Deploy notes
-
-- Vercel project for this repo stays on `*.vercel.app` (or later `pinme.francke.tech`).
-- Public hub domain **francke.tech** is owned by **`portfolio-web`**, not this repo.
-- Set `NEXT_PUBLIC_PORTFOLIO_URL=https://francke.tech` in production.
-
----
-
-## Roadmap (Web)
-
-- Local Compose practice smoke (when Docker available)
-- Resume unfinished sessions
-- Stats dashboard with activity heatmap
-- Cloud API harden (Railway migrations + R2); Drive/Pinterest import later (V3)
-
----
+- Resume unfinished sessions from the board view
+- Stats page with a GitHub-style activity heatmap
+- Import references from Google Drive and Pinterest
 
 ## Related repositories
 
 | Repo | Role |
 |------|------|
-| `portfolio-web` | Public francke.tech hub |
-| `pin-me-api` | FastAPI backend |
-| `pin-me` | Private/local product docs hub |
-
----
+| [pin-me-api](https://github.com/gmorlo/pin-me-api) | FastAPI backend |
+| [francke.tech](https://francke.tech) | Portfolio hub (`portfolio-web`) |
 
 ## License
 
-Personal / portfolio project — license TBD.
+Personal portfolio project. License to be decided.
