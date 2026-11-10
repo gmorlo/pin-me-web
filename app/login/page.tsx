@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 
+import { DemoOfflineNotice } from "../components/DemoOfflineNotice";
 import { PinMeHeader } from "../components/PinMeHeader";
 import {
   ApiError,
@@ -31,6 +32,7 @@ function LoginForm() {
   const statusQuery = useQuery({
     queryKey: ["auth", "status"],
     queryFn: getAuthStatus,
+    retry: 1, // show the offline notice quickly when the API is down
   });
 
   const meQuery = useQuery({
@@ -84,6 +86,8 @@ function LoginForm() {
         local dev login when enabled.
       </p>
 
+      {statusQuery.isError ? <DemoOfflineNotice /> : null}
+
       {(oauthError || error) && (
         <p className="mt-6 text-sm text-bad" role="alert">
           {error ?? oauthError}
@@ -98,7 +102,7 @@ function LoginForm() {
           >
             Continue with Google
           </a>
-        ) : (
+        ) : statusQuery.isError ? null : (
           <p className="text-sm text-muted">
             Google OAuth is not configured on the API yet. Use local login
             below, or set{" "}

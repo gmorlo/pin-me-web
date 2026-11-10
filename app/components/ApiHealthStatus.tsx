@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { apiBaseUrl } from "../../lib/api";
+import { DemoOfflineNotice } from "./DemoOfflineNotice";
 
 type HealthState =
   | { kind: "loading" }
@@ -114,6 +115,8 @@ export function ApiHealthStatus() {
           </button>
         </div>
       </div>
+
+      {state.kind === "error" ? <DemoOfflineNotice /> : null}
 
       {expanded ? (
         <dl className="divide-y divide-line border-b border-line">
