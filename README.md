@@ -1,6 +1,9 @@
 # PinMe Web
 
 [![CI](https://github.com/gmorlo/pin-me-web/actions/workflows/ci.yml/badge.svg)](https://github.com/gmorlo/pin-me-web/actions/workflows/ci.yml)
+[![License: proprietary](https://img.shields.io/badge/License-proprietary-lightgrey.svg)](LICENSE)
+![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
 Frontend for **PinMe**, a drawing-practice app: artists keep reference boards and run timed, non-repeating practice sessions from their own images.
 
@@ -110,4 +113,4 @@ lib/
 
 ## License
 
-Personal portfolio project. License to be decided.
+Copyright (c) 2026 Gabriel Francke. All rights reserved. The code is public for portfolio review only; see [LICENSE](LICENSE).
