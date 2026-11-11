@@ -10,11 +10,11 @@ export function DemoOfflineNotice() {
         The API is not hosted at the moment, so sign-in and boards are
         unavailable here. PinMe runs locally. Screenshots, a demo GIF and the
         code are on GitHub:{" "}
-        <a href="https://github.com/gmorlo/pin-me-web" className={linkClassName} rel="noreferrer">
+        <a href="https://github.com/gmorlo/pin-me-web" className={linkClassName} target="_blank" rel="noreferrer">
           pin-me-web
         </a>{" "}
         ·{" "}
-        <a href="https://github.com/gmorlo/pin-me-api" className={linkClassName} rel="noreferrer">
+        <a href="https://github.com/gmorlo/pin-me-api" className={linkClassName} target="_blank" rel="noreferrer">
           pin-me-api
         </a>
       </p>
